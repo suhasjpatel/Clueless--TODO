@@ -1,8 +1,10 @@
-package com.todo.clueless.models.players;
+package com.todo.clueless.shared.models.players;
 
-import com.todo.clueless.models.enums.Card;
+import com.todo.clueless.shared.models.enums.Card;
 
-public class CaseFile{
+import java.io.Serializable;
+
+public class CaseFile implements Serializable {
     private Card weaponCard;
     private Card roomCard;
     private Card suspectCard;

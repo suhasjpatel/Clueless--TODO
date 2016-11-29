@@ -1,15 +1,17 @@
-package com.todo.clueless.models.cards;
+package com.todo.clueless.shared.models.cards;
 
-import com.todo.clueless.models.enums.Card;
-import com.todo.clueless.models.enums.Room;
-import com.todo.clueless.models.enums.Suspect;
-import com.todo.clueless.models.enums.Weapon;
-import com.todo.clueless.models.players.CaseFile;
+import com.todo.clueless.shared.models.enums.Card;
+import com.todo.clueless.shared.models.enums.Room;
+import com.todo.clueless.shared.models.enums.Suspect;
+import com.todo.clueless.shared.models.enums.Weapon;
+import com.todo.clueless.shared.models.players.CaseFile;
+import com.todo.clueless.shared.models.players.Player;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class CardDeck {
+public class CardDeck implements Serializable {
     private ArrayList<Card> cardDeck;
     private CaseFile caseFile = new CaseFile();
 
@@ -58,5 +60,12 @@ public class CardDeck {
 
     public CaseFile getCaseFile() {
         return caseFile;
+    }
+
+    public void dealCards(ArrayList<Player> players) {
+
+        for (int x = 0; x < cardDeck.size(); x++) {
+            players.get(x % players.size()).getCards().add(cardDeck.get(x));
+        }
     }
 }

@@ -1,7 +1,8 @@
-package com.todo.clueless.models.enums;
+package com.todo.clueless.shared.models.enums;
 
 public enum Weapon {
     ROPE, LEAD_PIPE, KNIFE, WRENCH, CANDLESTICK, REVOLVER;
+
     public Card toCard() {
         switch (this) {
             case ROPE:

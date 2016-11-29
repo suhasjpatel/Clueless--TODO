@@ -1,4 +1,4 @@
-package com.todo.clueless.models.enums;
+package com.todo.clueless.shared.models.enums;
 
 public enum Room {
     KITCHEN, BALLROOM, CONSERVATORY, BILLIARD_ROOM, LIBRARY, STUDY, HALL, LOUNGE, DINING_ROOM;

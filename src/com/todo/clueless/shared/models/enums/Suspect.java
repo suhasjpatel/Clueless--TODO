@@ -1,7 +1,8 @@
-package com.todo.clueless.models.enums;
+package com.todo.clueless.shared.models.enums;
 
 public enum Suspect {
-    MUSTARD, SCARLET, PLUM, GREEN, WHITE, PEACOCK;
+    SCARLET, MUSTARD, PLUM, GREEN, WHITE, PEACOCK;
+
     public Card toCard() {
         switch (this) {
             case MUSTARD:
