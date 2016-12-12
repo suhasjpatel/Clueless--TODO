@@ -7,8 +7,8 @@ import enums.Weapon;
 import gameclient.Client;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -24,7 +24,7 @@ import java.util.ResourceBundle;
 
 /**
  * Controller on the client-side to control the gameView screen
- *
+ * <p>
  * Created by Suhas on 11/20/2016.
  */
 public class GameController implements Initializable {
@@ -79,23 +79,20 @@ public class GameController implements Initializable {
     private ToggleGroup weaponGroup = new ToggleGroup();
     private ToggleGroup suggestOrAccuse = new ToggleGroup();
     private boolean suggestMode = true;
-    private BooleanProperty turnProperty = new SimpleBooleanProperty(Client.getPlayer().isTurn());
-    private boolean firstUpdate = true;
 
     @FXML
     protected void endTurnAction() {
         if (Client.getPlayer().isTurn()) {
+            Client.getPlayer().setTurn(false);
+            Client.getPlayer().getNextPlayer().setTurn(true);
             Client.getPlayer().setHasSuggested(false);
             Client.getPlayer().setHasMoved(false);
-            firstUpdate = true;
-            stringHelper(playerNameHelper() + "has ended his/her turn.\n");
-            updateOptions();
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            Client.getPlayer().getNextPlayer().setEndTurnUpdate(true);
+            Client.getPlayer().setFirstUpdate(true);
+            if(!Client.getGame().hasGameEnded()) {
+                stringHelper(playerNameHelper() + "has ended his/her turn.\n");
             }
+            updateOptions();
 
             Client.endTurn();
         }
@@ -109,14 +106,22 @@ public class GameController implements Initializable {
     protected void confirmAction() {
         if (suggestOrAccuse.getSelectedToggle().equals(suggestRadio) && Client.getPlayer().isTurn()) {
             //Check if everything is not null, and check the suggestion
-            if (suspectGroup.getSelectedToggle() != null && weaponGroup.getSelectedToggle() != null && roomGroup.getSelectedToggle() != null) {
-                Client.checkSuggestion(((RadioButton) suspectGroup.getSelectedToggle()).getText(), ((RadioButton) weaponGroup.getSelectedToggle()).getText(), ((RadioButton) roomGroup.getSelectedToggle()).getText());
+            if (suspectGroup.getSelectedToggle() != null && weaponGroup.getSelectedToggle() != null && roomGroup.getSelectedToggle() != null && !Client.getPlayer().hasSuggested()) {
+                String c = Client.checkSuggestion(((RadioButton) suspectGroup.getSelectedToggle()).getText(),
+                        ((RadioButton) weaponGroup.getSelectedToggle()).getText(),
+                        ((RadioButton) roomGroup.getSelectedToggle()).getText(), Client.getPlayer());
+                boolean result = c.isEmpty();
                 Client.getPlayer().setHasSuggested(true);
                 stringHelper(playerNameHelper() + "has made a suggestion.\n");
+                stringHelper(playerNameHelper() + "has guessed Suspect: " + ((RadioButton) suspectGroup.getSelectedToggle()).getText() +
+                        ", Weapon: " + ((RadioButton) weaponGroup.getSelectedToggle()).getText() +
+                        ", Room: " + ((RadioButton) roomGroup.getSelectedToggle()).getText() + ".\n");
+
                 if (!Client.getPlayer().getCharacter().toString().equals(((RadioButton) suspectGroup.getSelectedToggle()).getText())) {
                     String s = "";
                     for (Player p : Client.getGame().getPlayers()) {
-                        if (p.getCharacter().toCard().toString().equals(((RadioButton) suspectGroup.getSelectedToggle()).getText())) {
+                        if ((p.getCharacter().toCard().toString().equals(((RadioButton) suspectGroup.getSelectedToggle()).getText())) &&
+                                !p.getCharacter().equals(Client.getPlayer().getCharacter())) {
                             s = p.getName() + " (" + p.getCharacter().toCard().toString() + ") ";
                             stringHelper(playerNameHelper() + "has moved player " + s + ".\n");
                         }
@@ -126,27 +131,47 @@ public class GameController implements Initializable {
                         stringHelper(playerNameHelper() + "has moved npc " + ((RadioButton) suspectGroup.getSelectedToggle()).getText() + ".\n");
                     }
                 }
-                updateOptions();
-            } else {
-                String s = messageBox.getStyle();
-                messageBox.setStyle("-fx-text-fill: red;");
-                messageBox.appendText("Please make sure you select a suspect, a weapon, and a room.\n");
-                messageBox.setStyle(s);
-            }
 
+                if (result) {
+                    updateOptions();
+                    messageBox.appendText("One or more cards in your suggestion was correct, or you own these cards.\n");
+                } else if(c.equals("Winner")){
+                    updateOptions();
+                    messageBox.appendText("All 3 cards in your suggestion were correct.\n");
+                }
+                else {
+                    stringHelper(playerNameHelper() + "was shown a card by " + c + ".\n");
+                    updateOptions();
+                }
+            }
+            else if (Client.getPlayer().hasSuggested()) {
+                suggestRadio.setDisable(true);
+            }
+            else {
+                updateOptions();
+                messageBox.appendText("Please make sure you select a suspect, a weapon, and a room.\n");
+            }
         } else if (suggestOrAccuse.getSelectedToggle().equals(accuseRadio) && Client.getPlayer().isTurn()) {
             if (suspectGroup.getSelectedToggle() != null && weaponGroup.getSelectedToggle() != null && roomGroup.getSelectedToggle() != null) {
-                boolean result = Client.checkAccusation(((RadioButton) suspectGroup.getSelectedToggle()).getText(), ((RadioButton) weaponGroup.getSelectedToggle()).getText(), ((RadioButton) roomGroup.getSelectedToggle()).getText());
+                boolean result = Client.checkAccusation(((RadioButton) suspectGroup.getSelectedToggle()).getText(),
+                        ((RadioButton) weaponGroup.getSelectedToggle()).getText(),
+                        ((RadioButton) roomGroup.getSelectedToggle()).getText());
                 if (!result) {
                     Client.getPlayer().setHasFalselyAccused(true);
                     stringHelper(playerNameHelper() + "has made a false accusation.\n");
-                    updateOptions();
+                    endTurnAction();
+                } else {
+                    stringHelper(playerNameHelper() + "has made a true accusation.\n");
+                    stringHelper(playerNameHelper() + "has guessed Suspect: " + Client.getGame().getCardDeck().getCaseFile().getSuspectCard().toString() +
+                            ", Weapon: " + Client.getGame().getCardDeck().getCaseFile().getWeaponCard().toString() +
+                            ", Room: " + Client.getGame().getCardDeck().getCaseFile().getRoomCard().toString() + ".\n");
+                    stringHelper(playerNameHelper() + "has won the game!\n");
+                    Client.getGame().setHasGameEnded();
+                    endTurnAction();
                 }
             } else {
-                String s = messageBox.getStyle();
-                messageBox.setStyle("-fx-text-fill: red;");
+                updateOptions();
                 messageBox.appendText("Please make sure you select a suspect, a weapon, and a room.\n");
-                messageBox.setStyle(s);
             }
         }
     }
@@ -178,7 +203,7 @@ public class GameController implements Initializable {
         ObservableList<Room> rooms = FXCollections.observableArrayList(Client.getPlayer().getNotebook().getPossibleRooms());
         ObservableList<Weapon> weapons = FXCollections.observableArrayList(Client.getPlayer().getNotebook().getPossibleWeapons());
 
-        //Wipe all gameclient.views to prevent double writes when new entries are added
+        //Wipe all views to prevent double writes when new entries are added
         suspectVBox.getChildren().clear();
         roomVBox.getChildren().clear();
         weaponVBox.getChildren().clear();
@@ -261,11 +286,11 @@ public class GameController implements Initializable {
             seenCardsVBox.getChildren().add(new Label(c.toString()));
         }
 
-        moveButton.setDisable(!Client.getPlayer().isTurn() || Client.getPlayer().isHasMoved());
-        confirmButton.setDisable(!Client.getPlayer().isTurn());
-        endTurnButton.setDisable(!Client.getPlayer().isTurn());
+        moveButton.setDisable(!Client.getPlayer().isTurn() || Client.getPlayer().hasMoved() || Client.getGame().hasGameEnded());
+        confirmButton.setDisable(!Client.getPlayer().isTurn() || Client.getGame().hasGameEnded());
+        endTurnButton.setDisable(!Client.getPlayer().isTurn() || Client.getGame().hasGameEnded());
 
-        suggestRadio.setDisable(Client.getPlayer().isHasSuggested());
+        suggestRadio.setDisable(Client.getPlayer().hasSuggested());
 
         stringHelper("");
     }
@@ -304,17 +329,22 @@ public class GameController implements Initializable {
             }
         });
 
-        //Set the default toggle to suggest
-        turnProperty.addListener((observable, oldValue, newValue) -> updateOptions());
-
         Timeline secondUpdate = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            if (firstUpdate && Client.getPlayer().isTurn()) {
-                if (!Client.getPlayer().isHasFalselyAccused()) {
+            if (Client.getPlayer().isFirstUpdate() && Client.getPlayer().isTurn()) {
+                if (!Client.getPlayer().hasFalselyAccused()) {
                     updateOptions();
-                } else {
+                    messageBox.appendText("It is your turn.\n");
+                } else if(Client.everyoneFalselyAccused()){
+                    Client.getGame().setHasGameEnded();
+                    stringHelper("Everyone false accused. The game is over.\n");
                     endTurnAction();
                 }
-                firstUpdate = false;
+                else {
+                    endTurnAction();
+                }
+                Client.getPlayer().setFirstUpdate(false);
+            } else if(!Client.getPlayer().isTurn()){
+                updateOptions();
             }
         }));
         secondUpdate.setCycleCount(Timeline.INDEFINITE);
@@ -322,14 +352,25 @@ public class GameController implements Initializable {
 
         suggestOrAccuse.selectToggle(suggestRadio);
 
+        messageBox.textProperty().addListener((observable, oldValue, newValue) -> {
+            messageBox.setScrollTop(Double.MAX_VALUE);
+        });
+
         updateOptions();
     }
 
     private void stringHelper(String s) {
-        messageBox.clear();
-        Client.getGame().setMessage(Client.getGame().getMessage() + s);
-        messageBox.setText(Client.getGame().getMessage());
-        messageBox.positionCaret(Client.getGame().getMessage().length());
+        if(!s.isEmpty()) {
+            messageBox.clear();
+            Client.getGame().setMessage(Client.getGame().getMessage() + s);
+            messageBox.setText(Client.getGame().getMessage());
+            messageBox.appendText("");
+        }
+        else if(!messageBox.getText().equals(Client.getGame().getMessage())){
+            messageBox.clear();
+            messageBox.setText(Client.getGame().getMessage());
+            messageBox.appendText("");
+        }
     }
 
     private String playerNameHelper() {

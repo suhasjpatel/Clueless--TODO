@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 /**
  * Abstract class used to join together the game map via a linkedish list.
- *
+ * <p>
  * Created by Suhas on 10/16/2016.
  */
 public abstract class Node implements Serializable {
@@ -29,6 +29,7 @@ public abstract class Node implements Serializable {
     Node getLeft() {
         return left;
     }
+
     void setLeft(Node left) {
         this.left = left;
     }
@@ -36,6 +37,7 @@ public abstract class Node implements Serializable {
     Node getRight() {
         return right;
     }
+
     void setRight(Node right) {
         this.right = right;
     }
@@ -43,6 +45,7 @@ public abstract class Node implements Serializable {
     Node getUp() {
         return up;
     }
+
     void setUp(Node up) {
         this.up = up;
     }
@@ -50,6 +53,7 @@ public abstract class Node implements Serializable {
     Node getDown() {
         return down;
     }
+
     void setDown(Node down) {
         this.down = down;
     }
@@ -57,6 +61,7 @@ public abstract class Node implements Serializable {
     Node getDiagonal() {
         return diagonal;
     }
+
     void setDiagonal(Node diagonal) {
         this.diagonal = diagonal;
     }
@@ -64,14 +69,17 @@ public abstract class Node implements Serializable {
     public ArrayList<Player> getPlayers() {
         return players;
     }
+
     public void setPlayers(ArrayList<Player> players) {
         this.players = players;
     }
 
     public abstract boolean isRoom();
+
     public Room getRoom() {
         return room;
     }
+
     public void setRoom(Room room) {
         this.room = room;
     }

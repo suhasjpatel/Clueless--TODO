@@ -11,7 +11,7 @@ import java.util.Collections;
 
 /**
  * Class representing a player's notebook.
- *
+ * <p>
  * Created by Suhas on 11/6/2016.
  */
 public class Notebook implements Serializable {

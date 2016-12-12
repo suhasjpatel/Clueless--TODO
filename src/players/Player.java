@@ -21,6 +21,8 @@ public class Player implements Serializable {
     private boolean hasMoved;
     private boolean hasSuggested;
     private boolean hasFalselyAccused = false;
+    private boolean endTurnUpdate = false;
+    private boolean firstUpdate = true;
 
     public Player(String name) {
         this.name = name;
@@ -74,7 +76,7 @@ public class Player implements Serializable {
         this.nextPlayer = nextPlayer;
     }
 
-    public boolean isHasMoved() {
+    public boolean hasMoved() {
         return hasMoved;
     }
 
@@ -82,7 +84,7 @@ public class Player implements Serializable {
         this.hasMoved = hasMoved;
     }
 
-    public boolean isHasSuggested() {
+    public boolean hasSuggested() {
         return hasSuggested;
     }
 
@@ -90,11 +92,27 @@ public class Player implements Serializable {
         this.hasSuggested = hasSuggested;
     }
 
-    public boolean isHasFalselyAccused() {
+    public boolean hasFalselyAccused() {
         return hasFalselyAccused;
     }
 
     public void setHasFalselyAccused(boolean hasFalselyAccused) {
         this.hasFalselyAccused = hasFalselyAccused;
+    }
+
+    public boolean isEndTurnUpdate() {
+        return endTurnUpdate;
+    }
+
+    public void setEndTurnUpdate(boolean endTurnUpdate) {
+        this.endTurnUpdate = endTurnUpdate;
+    }
+
+    public boolean isFirstUpdate() {
+        return firstUpdate;
+    }
+
+    public void setFirstUpdate(boolean firstUpdate) {
+        this.firstUpdate = firstUpdate;
     }
 }

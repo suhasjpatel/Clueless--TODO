@@ -4,7 +4,7 @@ import enums.Room;
 
 /**
  * Node to represent a room object on the GameMap
- *
+ * <p>
  * Created by Suhas on 10/30/2016.
  */
 public class RoomNode extends Node {

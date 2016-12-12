@@ -12,7 +12,7 @@ import java.util.UUID;
 
 /**
  * Shared game instance between the client and server.
- *
+ * <p>
  * Created by Suhas on 10/16/2016.
  */
 public class Game implements Serializable {
@@ -21,7 +21,6 @@ public class Game implements Serializable {
     private CardDeck cardDeck = new CardDeck();
     private boolean hasGameStarted = false;
     private boolean hasGameEnded = false;
-    private Player winner;
     private UUID gameId;
     private String message = "";
 
@@ -45,6 +44,7 @@ public class Game implements Serializable {
         System.out.println(cardDeck.getCaseFile());
 
         getPlayers().get(0).setTurn(true);
+        getPlayers().get(0).setEndTurnUpdate(true);
 
         hasGameStarted = true;
     }
@@ -75,6 +75,7 @@ public class Game implements Serializable {
     public ArrayList<Player> getPlayers() {
         return players;
     }
+
     public void setPlayers(ArrayList<Player> players) {
         this.players = players;
     }
@@ -82,9 +83,11 @@ public class Game implements Serializable {
     public UUID getGameId() {
         return gameId;
     }
+
     public GameMap getMap() {
         return map;
     }
+
     public CardDeck getCardDeck() {
         return cardDeck;
     }
@@ -96,21 +99,33 @@ public class Game implements Serializable {
     public boolean hasGameEnded() {
         return hasGameEnded;
     }
+
     public void setHasGameEnded() {
         this.hasGameEnded = true;
-    }
-
-    public Player getWinner() {
-        return winner;
-    }
-    public void setWinner(Player winner) {
-        this.winner = winner;
     }
 
     public String getMessage() {
         return message;
     }
+
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Player getPlayer(UUID playerId) {
+        for (Player p : players) {
+            if (playerId.equals(p.getId())) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    public void setPlayer(Player player) {
+        for (Player p : players) {
+            if (player.getId().equals(p.getId())) {
+                players.set(players.indexOf(p), player);
+            }
+        }
     }
 }

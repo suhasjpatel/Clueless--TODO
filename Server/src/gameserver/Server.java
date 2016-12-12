@@ -12,15 +12,15 @@ import static java.lang.System.exit;
 
 /**
  * Server class from which the game will be run
- *
+ * <p>
  * Created by Suhas on 10/16/2016.
  */
 public class Server {
-    private static final int PORT = 22222;
+    private static final int PORT = 7777;
     private static ArrayList<Game> games = new ArrayList<>();
 
     public static void main(String args[]) {
-        ServerSocket serverSocket;
+        ServerSocket serverSocket = null;
         Socket socket = null;
         int NUM_PLAYERS = 6;
 
@@ -29,7 +29,7 @@ public class Server {
                 NUM_PLAYERS = Integer.parseInt(args[0]);
             }
         } catch (NumberFormatException e) {
-            System.err.println("gameserver.Server argument wasn't a number for the number of players");
+            System.err.println("Server argument wasn't a number for the number of players");
             exit(-1);
         }
 
@@ -72,6 +72,12 @@ public class Server {
             }
 
         } catch (IOException | InterruptedException e) {
+            try {
+                assert serverSocket != null;
+                serverSocket.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             e.printStackTrace();
         }
     }

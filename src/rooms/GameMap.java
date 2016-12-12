@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 /**
  * Creates a game map object where all the rooms are properly arranged.
- *
+ * <p>
  * Created by Suhas on 10/16/2016.
  */
 public class GameMap implements Serializable {
